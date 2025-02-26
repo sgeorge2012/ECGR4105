@@ -1,0 +1,69 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from google.colab import drive
+
+def load_data(file_path):
+    df = pd.read_csv(file_path)
+    X = df.iloc[:, :-1].values
+    y = df.iloc[:, -1].values
+    return X, y
+
+def cost(X, y, theta):
+    m = len(y)
+    cost = (1 / (2 * m)) * np.sum((X.dot(theta) - y) ** 2)
+    return cost
+
+def gradient_descent(X, y, theta, learning_rate, iterations):
+    m = len(y)
+    cost_history = []
+    for _ in range(iterations):
+        gradient = (1 / m) * (X.T.dot(X.dot(theta) - y))
+        theta -= learning_rate * gradient
+        cost_history.append(cost(X, y, theta))
+    return theta, cost_history
+
+def predict(X, theta):
+    X = np.c_[np.ones(X.shape[0]), X]
+    return X.dot(theta)
+
+X, y = load_data('/content/drive/My Drive/Colab Notebooks/D3.csv')
+X = (X - np.mean(X)) / np.std(X)
+learning_rate = 0.1
+iterations = 100
+theta_list = []
+cost_histories = []
+
+X_bias = np.c_[np.ones(X.shape[0]), X]
+
+theta_x1, cost_x1 = gradient_descent(X_bias[:, [0, 1]], y, np.zeros(2), learning_rate, iterations)
+theta_x2, cost_x2 = gradient_descent(X_bias[:, [0, 2]], y, np.zeros(2), learning_rate, iterations)
+theta_x3, cost_x3 = gradient_descent(X_bias[:, [0, 3]], y, np.zeros(2), learning_rate, iterations)
+print(f"Theta for x1: {theta_x1}")
+print(f"Theta for x2: {theta_x2}")
+print(f"Theta for x3: {theta_x3}")
+plt.figure(figsize=(8, 5))
+plt.plot(range(len(cost_x1)), cost_x1, label="Loss for x1")
+plt.plot(range(len(cost_x2)), cost_x2, label="Loss for x2")
+plt.plot(range(len(cost_x3)), cost_x3, label="Loss for x3")
+plt.xlabel("Iterations")
+plt.ylabel("Loss")
+plt.title("Loss Over Iterations for Each Variable")
+plt.legend()
+plt.show()
+
+theta_multi, cost_multi = gradient_descent(X_bias, y, np.zeros(X_bias.shape[1]), learning_rate, iterations)
+print(f"Theta for multivariable regression: {theta_multi}")
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(len(cost_multi)), cost_multi, label="Loss for Multivariable Regression", color="black")
+plt.xlabel("Iterations")
+plt.ylabel("Loss")
+plt.title("Loss Over Iterations for Multivariable Regression")
+plt.legend()
+plt.show()
+
+new_X = np.array([[1, 1, 1], [2, 0, 4], [3, 2, 1]])
+new_X = (new_X - np.mean(X)) / np.std(X)
+predictions = predict(new_X, theta_multi)
+print("Predictions:", predictions)
